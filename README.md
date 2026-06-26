@@ -38,6 +38,20 @@ glipboard --tui=true
 *Pro Tip: Bind this command to a custom keyboard shortcut in your window manager (e.g., Super+V) for instant access.*
 Or if you installed glipborad using given scripts you can open the tui with desktop app created
 
+
+## Uninstallation
+
+If you wish to completely remove Glipboard, its background service, and all local data (including the SQLite database) from your system, you can run the uninstallation scripts.
+
+### Linux & macOS
+Run the following command in your terminal:
+`bash
+curl -sL [https://raw.githubusercontent.com/bedirmirac/glipboard/main/remove.sh](https://raw.githubusercontent.com/bedirmirac/glipboard/main/remove.sh) | bash`
+
+### Windows
+Open PowerShell and run the following command:
+`Invoke-WebRequest -Uri [https://raw.githubusercontent.com/bedirmirac/glipboard/main/remove.ps1](https://raw.githubusercontent.com/bedirmirac/glipboard/main/remove.ps1) -OutFile remove.ps1; .\remove.ps1`
+
 ## Acknowledgements
 
 This project would not be possible without the incredible open-source work from the following repositories:
