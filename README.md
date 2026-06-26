@@ -15,15 +15,17 @@ When you need to interact with your clipboard history, Glipboard provides a fast
 
 ### Linux & macOS
 Run the following script to automatically download the latest binary, configure the background daemon, and set up the desktop entry:
-\`\`\`bash
-curl -sL https://raw.githubusercontent.com/bedirmirac/glipboard/main/install.sh | bash
-\`\`\`
+
+`
+bash curl -sL https://raw.githubusercontent.com/bedirmirac/glipboard/main/install.sh | bash
+`
 
 ### Windows
 Open PowerShell and run the following command to install the background service and create a desktop shortcut:
-\`\`\`powershell
+`
+powershell
 Invoke-WebRequest -Uri https://raw.githubusercontent.com/bedirmirac/glipboard/main/install.ps1 -OutFile install.ps1; .\install.ps1
-\`\`\`
+`
 
 ## Usage
 
@@ -39,9 +41,9 @@ Or if you installed glipborad using given scripts you can open the tui with desk
 ## Acknowledgements
 
 This project would not be possible without the incredible open-source work from the following repositories:
-* [charmbracelet/bubbletea](https://github.com/charmbracelet/bubbletea) - For the powerful and elegant TUI framework.
-* [mattn/go-sqlite3](https://github.com/mattn/go-sqlite3) - For the robust SQLite driver powering the local history storage.
-* [atotto/clipboard](https://github.com/atotto/clipboard) - For the seamless cross-platform clipboard interactions.
+* [charmbracelet/bubbletea](https://github.com/charmbracelet/bubbletea) - For the powerful and elegant TUI framework. Licensed under the [MIT License](https://github.com/charmbracelet/bubbletea/blob/master/LICENSE).
+* [modernc.org/sqlite](https://gitlab.com/cznic/sqlite) - A pure-Go SQLite driver used for cross-platform database management without CGO, powering the local history storage. Licensed under the [Zlib License](https://gitlab.com/cznic/sqlite/-/blob/master/LICENSE).
+* [atotto/clipboard](https://github.com/atotto/clipboard) - For the seamless cross-platform clipboard interactions. Licensed under the [BSD 3-Clause License](https://github.com/atotto/clipboard/blob/master/LICENSE).
 
 ## License
 
