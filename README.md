@@ -16,25 +16,25 @@ When you need to interact with your clipboard history, Glipboard provides a fast
 ### Linux & macOS
 Run the following script to automatically download the latest binary, configure the background daemon, and set up the desktop entry:
 
-`
+```
 bash curl -sL https://raw.githubusercontent.com/bedirmirac/glipboard/main/install.sh | bash
-`
+```
 
 ### Windows
 Open PowerShell and run the following command to install the background service and create a desktop shortcut:
-`
+```
 powershell
 Invoke-WebRequest -Uri https://raw.githubusercontent.com/bedirmirac/glipboard/main/install.ps1 -OutFile install.ps1; .\install.ps1
-`
+```
 
 ## Usage
 
 Glipboard automatically starts its daemon in the background upon system login. 
 
 To open the interface and browse your clipboard history, run:
-\`\`\`bash
+```bash
 glipboard --tui=true
-\`\`\`
+```
 *Pro Tip: Bind this command to a custom keyboard shortcut in your window manager (e.g., Super+V) for instant access.*
 Or if you installed glipborad using given scripts you can open the tui with desktop app created
 
@@ -45,12 +45,15 @@ If you wish to completely remove Glipboard, its background service, and all loca
 
 ### Linux & macOS
 Run the following command in your terminal:
-`bash
-curl -sL [https://raw.githubusercontent.com/bedirmirac/glipboard/main/remove.sh](https://raw.githubusercontent.com/bedirmirac/glipboard/main/remove.sh) | bash`
+```
+curl -sL https://raw.githubusercontent.com/bedirmirac/glipboard/main/remove.sh | bash
+```
 
 ### Windows
 Open PowerShell and run the following command:
-`Invoke-WebRequest -Uri [https://raw.githubusercontent.com/bedirmirac/glipboard/main/remove.ps1](https://raw.githubusercontent.com/bedirmirac/glipboard/main/remove.ps1) -OutFile remove.ps1; .\remove.ps1`
+```
+Invoke-WebRequest -Uri https://raw.githubusercontent.com/bedirmirac/glipboard/main/remove.ps1 -OutFile remove.ps1; .\remove.ps1
+```
 
 ## Acknowledgements
 
