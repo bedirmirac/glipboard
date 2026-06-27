@@ -36,6 +36,8 @@ To open the interface and browse your clipboard history, run:
 glipboard --tui=true
 ```
 *Pro Tip: Bind this command to a custom keyboard shortcut in your window manager (e.g., Super+V) for instant access.*
+
+
 Or if you installed glipborad using given scripts you can open the tui with desktop app created
 
 
