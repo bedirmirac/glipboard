@@ -1,14 +1,33 @@
+$appName = "glipboard"
+
 Write-Host "Removing Glipboard from the system..." -ForegroundColor Cyan
 
 # 1. Safely terminate any running glipboard processes
-$process = Get-Process -Name "glipboard" -ErrorAction SilentlyContinue
+$process = Get-Process -Name $appName -ErrorAction SilentlyContinue
 if ($process) {
     Write-Host "Running glipboard process found, terminating..." -ForegroundColor Yellow
-    Stop-Process -Name "glipboard" -Force
+    Stop-Process -Name $appName -Force
     Start-Sleep -Seconds 1
 }
 
-# 2. Remove binaries and database files from the local directory
+# 2. Remove Startup daemon script (VBScript) and Desktop Shortcut
+$startupFolder = [Environment]::GetFolderPath('Startup')
+$vbsPath = Join-Path -Path $startupFolder -ChildPath "$appName-daemon.vbs"
+
+if (Test-Path $vbsPath) {
+    Remove-Item $vbsPath -Force
+    Write-Host "Removed Startup daemon script ($vbsPath)" -ForegroundColor Gray
+}
+
+$desktopFolder = [Environment]::GetFolderPath('Desktop')
+$desktopShortcutPath = Join-Path -Path $desktopFolder -ChildPath "$appName TUI.lnk"
+
+if (Test-Path $desktopShortcutPath) {
+    Remove-Item $desktopShortcutPath -Force
+    Write-Host "Removed Desktop shortcut ($desktopShortcutPath)" -ForegroundColor Gray
+}
+
+# 3. Remove binaries and database files from the local directory (Eğer çalıştırılan klasörde kalıntı varsa)
 $targetFiles = @(
     ".\glipboard.exe",
     ".\glipboard-windows-amd64.exe",
@@ -24,14 +43,14 @@ foreach ($file in $targetFiles) {
     }
 }
 
-# 3. Remove potential AppData configuration folders
-$appDataPath = Join-Path $env:APPDATA "glipboard"
+# 4. Remove AppData configuration folders (Ana kurulum yerleri)
+$appDataPath = Join-Path $env:APPDATA $appName
 if (Test-Path $appDataPath) {
     Remove-Item $appDataPath -Recurse -Force
     Write-Host "Application data folder removed ($appDataPath)" -ForegroundColor Gray
 }
 
-$localAppDataPath = Join-Path $env:LOCALAPPDATA "glipboard"
+$localAppDataPath = Join-Path $env:LOCALAPPDATA $appName
 if (Test-Path $localAppDataPath) {
     Remove-Item $localAppDataPath -Recurse -Force
     Write-Host "Local application data folder removed ($localAppDataPath)" -ForegroundColor Gray

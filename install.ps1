@@ -66,15 +66,18 @@ try {
 # 3. Setup system startup and desktop shortcuts
 $WshShell = New-Object -comObject WScript.Shell
 
-# Startup Shortcut (Background daemon)
+# --- DEĞİŞEN KISIM: Startup Shortcut (Background daemon via VBScript) ---
 $startupFolder = [Environment]::GetFolderPath('Startup')
-$startupShortcutPath = Join-Path -Path $startupFolder -ChildPath "$appName.lnk"
+$vbsPath = Join-Path -Path $startupFolder -ChildPath "$appName-daemon.vbs"
 
-$startupShortcut = $WshShell.CreateShortcut($startupShortcutPath)
-$startupShortcut.TargetPath = $targetExe
-$startupShortcut.WindowStyle = 7 # 7 = Minimized (Runs silently)
-$startupShortcut.Save()
-Write-Host "-> Added to Startup tasks." -ForegroundColor Green
+$vbsContent = @"
+Set WshShell = CreateObject("WScript.Shell")
+WshShell.Run chr(34) & "$targetExe" & chr(34), 0, False
+"@
+
+Set-Content -Path $vbsPath -Value $vbsContent -Encoding UTF8
+Write-Host "-> Added to Startup tasks (Silent Daemon)." -ForegroundColor Green
+# ------------------------------------------------------------------------
 
 # Desktop Shortcut (For TUI)
 $desktopFolder = [Environment]::GetFolderPath('Desktop')
