@@ -63,12 +63,23 @@ func StartDaemon() {
 		newContent, err := clipboard.ReadAll()
 		if err == nil && newContent != "" && newContent != lastCopied {
 			text.Context = newContent
-			err := s.Save(text)
+			err := s.Save(text.Context)
 			if err != nil {
 				log.Printf("error during saving the content: %v", err)
 			} else {
 				lastCopied = newContent
 			}
+			isExceeded, err := s.IsLimitExceeded()
+			if err != nil {
+				log.Printf("error after saving: %v", err)
+			}
+			if isExceeded {
+				err := s.DeleteOldestRecord()
+				if err != nil {
+					log.Printf("error while deleting the oldest record: %v", err)
+				}
+			}
+
 		}
 	}
 }

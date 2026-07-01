@@ -55,7 +55,11 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.message = "The content is copied."
 				return m, tea.Quit
 			} else {
-				m.selected[m.cursor] = struct{}{}
+				if len(m.selected) > 0 {
+					m.message = "You can only select one item"
+				} else {
+					m.selected[m.cursor] = struct{}{}
+				}
 			}
 		case "d":
 			_, ok := m.selected[m.cursor]
@@ -73,7 +77,11 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.cursor = 0
 				return m, nil
 			} else {
-				m.selected[m.cursor] = struct{}{}
+				if len(m.selected) > 0 {
+					m.message = "You can only select one item"
+				} else {
+					m.selected[m.cursor] = struct{}{}
+				}
 			}
 		case "ctrl+r":
 			err := m.db.DeleteAll()
@@ -88,7 +96,11 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			if ok {
 				delete(m.selected, m.cursor)
 			} else {
-				m.selected[m.cursor] = struct{}{}
+				if len(m.selected) > 0 {
+					m.message = "You can only select one item"
+				} else {
+					m.selected[m.cursor] = struct{}{}
+				}
 			}
 		}
 	}
@@ -129,7 +141,10 @@ func (m model) View() tea.View {
 	if m.message != "" {
 		s += fmt.Sprintf("\n---\n%v\n---\n", m.message)
 	}
-	totalPage := (len(m.choices) / pageSize) + 1
+	totalPage := (len(m.choices) + pageSize - 1) / pageSize
+	if totalPage == 0 {
+		totalPage = 1
+	}
 	currentPage := (m.cursor / pageSize) + 1
 	pageInfo := fmt.Sprintf("\n--- Page %v / %v ---\n", currentPage, totalPage)
 	s += pageInfo
