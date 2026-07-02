@@ -113,6 +113,11 @@ func TestDeleteAll(t *testing.T) {
 	if exists {
 		t.Fatalf("expected no data exists, but there are some data exist: %v", err)
 	}
+	// if there is nothing to delete, it should just do nothing and return nil error
+	err = s.DeleteAll()
+	if err != nil {
+		t.Fatalf("there shouldn't be an error: %v", err)
+	}
 }
 
 func TestDelete(t *testing.T) {
@@ -125,39 +130,41 @@ func TestDelete(t *testing.T) {
 		expectErr bool
 	}{
 		{"Non-exists id", "Text", -1, true},
-		{"Correct value", "Text1", 1, false},
+		{name: "Correct value", text: "Text1", expectErr: false},
 	}
 
-	q := `INSERT INTO clipboard (context) VALUES (?)`
+	q := `INSERT INTO clipboard (context) VALUES (?) RETURNING id`
 	for i := 1; i < len(tests); i++ {
-		_, err := db.Exec(q, tests[i].text)
+		err := db.QueryRow(q, tests[i].text).Scan(&tests[i].id)
 		if err != nil {
 			t.Fatalf("error during saving the test data to test db: %v", err)
 		}
 	}
 
 	for _, test := range tests {
-		err := s.Delete(test.id)
+		t.Run(test.name, func(t *testing.T) {
+			err := s.Delete(test.id)
 
-		if test.expectErr {
+			if test.expectErr {
+				if err == nil {
+					t.Errorf("[%s] expected error, but ran successfully", test.name)
+				}
+				return
+			} else {
+				if err != nil {
+					t.Errorf("[%s] unexpected error: %v", test.name, err)
+				}
+			}
+
+			var ctx string
+			err = db.QueryRow(`SELECT context FROM clipboard WHERE id = ?`, test.id).Scan(&ctx)
+
 			if err == nil {
-				t.Errorf("[%s] expected error, but ran successfully", test.name)
+				t.Errorf("[%s] data with id %d should be deleted but it still exists", test.name, test.id)
+			} else if !errors.Is(err, sql.ErrNoRows) {
+				t.Errorf("[%s] expected sql.ErrNoRows, but got: %v", test.name, err)
 			}
-			continue
-		} else {
-			if err != nil {
-				t.Errorf("[%s] unexpected error: %v", test.name, err)
-			}
-		}
-
-		var ctx string
-		err = db.QueryRow(`SELECT context FROM clipboard WHERE id = ?`, test.id).Scan(&ctx)
-
-		if err == nil {
-			t.Errorf("[%s] data with id %d should be deleted but it still exists", test.name, test.id)
-		} else if !errors.Is(err, sql.ErrNoRows) {
-			t.Errorf("[%s] expected sql.ErrNoRows, but got: %v", test.name, err)
-		}
+		})
 	}
 }
 
@@ -171,6 +178,8 @@ func TestSave(t *testing.T) {
 	}{
 		{"Empty string", "", false},
 		{"Correct value", "testValue", false},
+		{"Emojis", "Hello 🌍", false},
+		{"SQL Injection", `It's a "test" string; DROP TABLE;`, false},
 	}
 
 	for _, test := range tests {
