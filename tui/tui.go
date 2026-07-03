@@ -134,8 +134,12 @@ func (m model) View() tea.View {
 		if _, ok := m.selected[i]; ok {
 			checked = "x"
 		}
+		maxContext := choice.Context
+		if len(choice.Context) > 25 {
+			maxContext = maxCharOfString(choice.Context)
+		}
 
-		s += fmt.Sprintf("\n%v [%v] %v\n", cursor, checked, choice.Context)
+		s += fmt.Sprintf("\n%v [%v] %v\n", cursor, checked, maxContext)
 	}
 
 	if m.message != "" {
