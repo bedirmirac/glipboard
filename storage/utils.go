@@ -1,24 +1,32 @@
 package storage
 
 import (
+	"crypto/sha256"
 	"database/sql"
 	"fmt"
 )
 
-func (s *Storage) Save(context string) error {
-	instertSQL := `INSERT INTO clipboard (context) VALUES (?)`
+func (s *Storage) Save(dataType string, rawData []byte, textContent string, filePath string) error {
+	hashBytes := sha256.Sum256(rawData)
+	hashString := fmt.Sprintf("%x", hashBytes)
 
-	_, err := s.db.Exec(instertSQL, context)
+	insertQuery := `INSERT INTO clipboard (hash, type, context, file_path) VALUES (?, ?, ?, ?)`
+
+	_, err := s.db.Exec(insertQuery, hashString, dataType, textContent, filePath)
 	if err != nil {
-		return fmt.Errorf("error during inserting context to database: %v", err)
+		if err.Error() == "UNIQUE constraint failed: clipboard.hash" {
+			return nil
+		} else {
+			return fmt.Errorf("error during saving to database: %v", err)
+		}
 	}
 	return nil
 }
 
-func (s *Storage) Delete(id int) error {
-	query := `DELETE FROM clipboard WHERE id = ?`
+func (s *Storage) Delete(hash string) error {
+	query := `DELETE FROM clipboard WHERE hash = ?`
 
-	res, err := s.db.Exec(query, id)
+	res, err := s.db.Exec(query, hash)
 	if err != nil {
 		return fmt.Errorf("error during deleting: %v", err)
 	}
@@ -27,7 +35,7 @@ func (s *Storage) Delete(id int) error {
 		return fmt.Errorf("error during deleting: %v", err)
 	}
 	if rowsAffected == 0 {
-		return fmt.Errorf("there is probably no context with id %v. Nothing deleted", id)
+		return fmt.Errorf("there is probably no context with hash %v. Nothing deleted", hash)
 	}
 	return nil
 }
@@ -61,8 +69,8 @@ func (s *Storage) IsLimitExceeded() (bool, error) {
 func (s *Storage) DeleteOldestRecord() error {
 	query := `
 		DELETE FROM clipboard 
-		WHERE id = (
-			SELECT id FROM clipboard ORDER BY id ASC LIMIT 1
+		WHERE hash = (
+			SELECT hash FROM clipboard ORDER BY created_at ASC, rowid ASC LIMIT 1
 		)
 	`
 	_, err := s.db.Exec(query)

@@ -5,12 +5,14 @@ import (
 )
 
 type Clipboard struct {
-	ID      int
-	Context string
+	Hash     string
+	Context  string
+	Type     string
+	FilePath string
 }
 
 func (s *Storage) Fetch() ([]Clipboard, error) {
-	rows, err := s.db.Query("SELECT id, context FROM clipboard ORDER BY id DESC")
+	rows, err := s.db.Query("SELECT hash, context, type, file_path FROM clipboard ORDER BY created_at DESC")
 	if err != nil {
 		return nil, fmt.Errorf("error during fetching data: %v", err)
 	}
@@ -18,7 +20,7 @@ func (s *Storage) Fetch() ([]Clipboard, error) {
 	var items []Clipboard
 	for rows.Next() {
 		var item Clipboard
-		err := rows.Scan(&item.ID, &item.Context)
+		err := rows.Scan(&item.Hash, &item.Context, &item.Type, &item.FilePath)
 		if err != nil {
 			return nil, fmt.Errorf("error during fetching data from a row: %v", err)
 		}

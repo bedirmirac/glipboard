@@ -35,8 +35,11 @@ func NewStorage() (*Storage, error) {
 
 	createTableSQL := `
 	CREATE TABLE IF NOT EXISTS clipboard (
-		id INTEGER PRIMARY KEY AUTOINCREMENT,
-		context TEXT NOT NULL
+		hash TEXT PRIMARY KEY,
+		type TEXT NOT NULL,
+		context TEXT,
+		file_path TEXT,
+		created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 	);`
 
 	_, err = db.Exec(createTableSQL)
