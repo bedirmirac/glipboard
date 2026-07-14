@@ -25,13 +25,17 @@ func TestNewStorage(t *testing.T) {
 	})
 
 	expectedPath := filepath.Join(tempDir, ".config", "glipboard", "clipboard.db")
-	if _, err := os.Stat(expectedPath); os.IsNotExist(err) {
-		t.Errorf("database file was not created at the expected path: %v", expectedPath)
+	if _, err := os.Stat(expectedPath); err != nil {
+		t.Fatalf("database file was not created or accessible at the expected path: %v", err)
 	}
 
 	var name string
 	err = s.db.QueryRow("SELECT name FROM sqlite_master WHERE type='table' AND name='clipboard';").Scan(&name)
 	if err != nil {
-		t.Errorf("clipboard couldn't be found in database: %v", err)
+		t.Fatalf("clipboard couldn't be found in database: %v", err)
+	}
+
+	if name != "clipboard" {
+		t.Fatalf("expected table name 'clipboard', got %s", name)
 	}
 }

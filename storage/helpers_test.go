@@ -11,11 +11,14 @@ func setupTestDb(t *testing.T) *sql.DB {
 		t.Fatalf("Test db couldn't be opened: %v", err)
 	}
 
-	query := `CREATE TABLE clipboard (
-	id INTEGER PRIMARY KEY AUTOINCREMENT,
-	context TEXT NOT NULL
-	);
-	`
+	query := `
+	CREATE TABLE IF NOT EXISTS clipboard (
+		hash TEXT PRIMARY KEY,
+		type TEXT NOT NULL,
+		context TEXT,
+		file_path TEXT,
+		created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+	);`
 	_, err = db.Exec(query)
 	if err != nil {
 		t.Fatalf("Table couldn't be created: %v", err)
