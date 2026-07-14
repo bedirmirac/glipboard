@@ -6,6 +6,8 @@ When you need to interact with your clipboard history, Glipboard provides a fast
 
 ## Features
 * **Cross-Platform:** Native background service integration for Linux (Systemd), macOS (LaunchAgent), and Windows (Startup).
+* **Event-Driven Daemon:** For 'wayland' event-driven daemon, other systems like Windows, macOS, and linux(x11) polling daemon is used.
+* **Image Support:** Images are supported, you can copy and image you copied before using glipboard
 * **Silent Daemon:** Runs invisibly in the background on system boot without unnecessary bloat.
 * **Terminal UI (TUI):** A clean, interactive terminal interface built for power users.
 * **Local Storage:** Stores your clipboard history locally using SQLite.
@@ -62,8 +64,9 @@ Invoke-WebRequest -Uri https://raw.githubusercontent.com/bedirmirac/glipboard/ma
 This project would not be possible without the incredible open-source work from the following repositories:
 * [charmbracelet/bubbletea](https://github.com/charmbracelet/bubbletea) - For the powerful and elegant TUI framework. Licensed under the [MIT License](https://github.com/charmbracelet/bubbletea/blob/master/LICENSE).
 * [modernc.org/sqlite](https://gitlab.com/cznic/sqlite) - A pure-Go SQLite driver used for cross-platform database management without CGO, powering the local history storage. Licensed under the [Zlib License](https://gitlab.com/cznic/sqlite/-/blob/master/LICENSE).
-* [atotto/clipboard](https://github.com/atotto/clipboard) - For the seamless cross-platform clipboard interactions. Licensed under the [BSD 3-Clause License](https://github.com/atotto/clipboard/blob/master/LICENSE).
+* [golang.design/x/clipboard](https://github.com/golang-design/clipboard) - For the seamless cross-platform clipboard interactions. Licensed under the [MIT License](https://github.com/golang-design/clipboard/blob/main/LICENSE).
 
+Huge thanks to [atotto/clipboard](https://github.com/atotto/clipboard) for providing a solid cross-platform clipboard foundation during the early development of this project.
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
