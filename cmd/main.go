@@ -174,8 +174,14 @@ func eventDriven(s *storage.Storage) {
 				if err == nil {
 					imgPath, err := getPath()
 					if err == nil {
-						os.WriteFile(imgPath, imgData, 0o644)
-						s.Save("image", imgData, "", imgPath)
+						err = os.WriteFile(imgPath, imgData, 0o644)
+						if err != nil {
+							log.Printf("error during writing local image: %v", err)
+						}
+						err = s.Save("image", imgData, "", imgPath)
+						if err != nil {
+							log.Printf("error during saving data to database: %v", err)
+						}
 						continue
 					}
 				}
@@ -216,12 +222,20 @@ func polling(s *storage.Storage) {
 				if err == nil {
 					imgPath, err := getPath()
 					if err == nil {
-						os.WriteFile(imgPath, imgData, 0o644)
-						s.Save("image", imgData, "", imgPath)
-
+						err := os.WriteFile(imgPath, imgData, 0o644)
+						if err != nil {
+							log.Printf("error during writing local image: %v", err)
+						}
+						err = s.Save("image", imgData, "", imgPath)
+						if err != nil {
+							log.Printf("error during saving data to database: %v", err)
+						}
 						isExceeded, _ := s.IsLimitExceeded()
 						if isExceeded {
-							s.DeleteOldestRecord()
+							err := s.DeleteOldestRecord()
+							if err != nil {
+								log.Printf("error during deletoing the oldest record: %v", err)
+							}
 						}
 						continue
 					}
