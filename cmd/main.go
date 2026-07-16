@@ -238,7 +238,7 @@ func polling(s *storage.Storage) {
 						if isExceeded {
 							err := s.DeleteOldestRecord()
 							if err != nil {
-								log.Printf("error during deletoing the oldest record: %v", err)
+								log.Printf("error during deleting the oldest record: %v", err)
 							}
 						}
 						continue
@@ -247,6 +247,9 @@ func polling(s *storage.Storage) {
 			}
 			err := s.Save("text", []byte(newText), string(newText), "")
 			if err != nil {
+				if errors.Is(err, storage.ErrAlreadyExists) {
+					continue
+				}
 				log.Printf("error during saving the content: %v", err)
 			}
 			isExceeded, err := s.IsLimitExceeded()
@@ -265,7 +268,6 @@ func polling(s *storage.Storage) {
 			if err != nil {
 				log.Printf("error during getting image path: %v", err)
 			}
-			// os.WriteFile
 			err = s.Save("image", newImg, "", imgPath)
 			if err != nil {
 
