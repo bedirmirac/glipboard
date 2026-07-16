@@ -3,8 +3,18 @@ package storage
 import (
 	"crypto/sha256"
 	"database/sql"
+	"errors"
 	"fmt"
+
+	"modernc.org/sqlite"
 )
+
+const (
+	ErrSqliteConstraintPrimaryKey = 1555
+	ErrSqliteConstraintUnique     = 2067
+)
+
+var ErrAlreadyExists = errors.New("It already exists")
 
 func (s *Storage) Save(dataType string, rawData []byte, textContent string, filePath string) error {
 	hashBytes := sha256.Sum256(rawData)
@@ -14,10 +24,14 @@ func (s *Storage) Save(dataType string, rawData []byte, textContent string, file
 
 	_, err := s.db.Exec(insertQuery, hashString, dataType, textContent, filePath)
 	if err != nil {
-		if err.Error() == "UNIQUE constraint failed: clipboard.hash" {
-			return nil
-		} else {
-			return fmt.Errorf("error during saving to database: %v", err)
+		var sqliteErr *sqlite.Error
+		if errors.As(err, &sqliteErr) {
+			errCode := sqliteErr.Code()
+			if errCode == ErrSqliteConstraintPrimaryKey || errCode == ErrSqliteConstraintUnique {
+				return ErrAlreadyExists
+			} else {
+				return fmt.Errorf("error during saving to database: %v", err)
+			}
 		}
 	}
 	return nil
