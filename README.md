@@ -49,7 +49,11 @@ If you wish to completely remove Glipboard, its background service, and all loca
 ### Linux & macOS
 Run the following command in your terminal:
 ```
-bash -c "$(curl -sL https://raw.githubusercontent.com/bedirmirac/glipboard/main/remove.sh)"
+curl -O https://raw.githubusercontent.com/bedirmirac/glipboard/main/remove.sh
+
+chmod +x remove.sh
+
+./remove.sh
 ```
 
 ### Windows
