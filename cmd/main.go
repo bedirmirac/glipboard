@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	_ "image/jpeg"
 	"io"
@@ -222,13 +223,16 @@ func polling(s *storage.Storage) {
 				if err == nil {
 					imgPath, err := getPath()
 					if err == nil {
+						err = s.Save("image", imgData, "", imgPath)
+						if err != nil {
+							if errors.Is(err, storage.ErrAlreadyExists) {
+								continue
+							}
+							log.Printf("error during saving data to database: %v", err)
+						}
 						err := os.WriteFile(imgPath, imgData, 0o644)
 						if err != nil {
 							log.Printf("error during writing local image: %v", err)
-						}
-						err = s.Save("image", imgData, "", imgPath)
-						if err != nil {
-							log.Printf("error during saving data to database: %v", err)
 						}
 						isExceeded, _ := s.IsLimitExceeded()
 						if isExceeded {
@@ -261,9 +265,19 @@ func polling(s *storage.Storage) {
 			if err != nil {
 				log.Printf("error during getting image path: %v", err)
 			}
+			// os.WriteFile
 			err = s.Save("image", newImg, "", imgPath)
 			if err != nil {
+
+				if errors.Is(err, storage.ErrAlreadyExists) {
+					continue
+				}
 				log.Printf("error during saving the content: %v", err)
+			}
+
+			err = os.WriteFile(imgPath, newImg, 0o644)
+			if err != nil {
+				log.Printf("error during writing local image: %v", err)
 			}
 			isExceeded, err := s.IsLimitExceeded()
 			if err != nil {
