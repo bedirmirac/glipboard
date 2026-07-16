@@ -19,13 +19,12 @@ When you need to interact with your clipboard history, Glipboard provides a fast
 Run the following script to automatically download the latest binary, configure the background daemon, and set up the desktop entry:
 
 ```
-bash curl -sL https://raw.githubusercontent.com/bedirmirac/glipboard/main/install.sh | bash
+curl -sL https://raw.githubusercontent.com/bedirmirac/glipboard/main/install.sh | bash
 ```
 
 ### Windows
 Open PowerShell and run the following command to install the background service and create a desktop shortcut:
 ```
-powershell
 Invoke-WebRequest -Uri https://raw.githubusercontent.com/bedirmirac/glipboard/main/install.ps1 -OutFile install.ps1; .\install.ps1
 ```
 
