@@ -19,7 +19,7 @@ When you need to interact with your clipboard history, Glipboard provides a fast
 Run the following script to automatically download the latest binary, configure the background daemon, and set up the desktop entry:
 
 ```
-curl -sL https://raw.githubusercontent.com/bedirmirac/glipboard/main/install.sh | bash
+bash -c "$(curl -sL https://raw.githubusercontent.com/bedirmirac/glipboard/main/install.sh)"
 ```
 
 ### Windows
@@ -49,7 +49,7 @@ If you wish to completely remove Glipboard, its background service, and all loca
 ### Linux & macOS
 Run the following command in your terminal:
 ```
-curl -sL https://raw.githubusercontent.com/bedirmirac/glipboard/main/remove.sh | bash
+bash -c "$(curl -sL https://raw.githubusercontent.com/bedirmirac/glipboard/main/remove.sh)"
 ```
 
 ### Windows
