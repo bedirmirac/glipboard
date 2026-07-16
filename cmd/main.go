@@ -181,6 +181,10 @@ func eventDriven(s *storage.Storage) {
 						}
 						err = s.Save("image", imgData, "", imgPath)
 						if err != nil {
+
+							if errors.Is(err, storage.ErrAlreadyExists) {
+								continue
+							}
 							log.Printf("error during saving data to database: %v", err)
 						}
 						continue
@@ -189,6 +193,10 @@ func eventDriven(s *storage.Storage) {
 			}
 			err := s.Save("text", data.Bytes, textContent, "")
 			if err != nil {
+
+				if errors.Is(err, storage.ErrAlreadyExists) {
+					continue
+				}
 				log.Printf("error in save function: %v", err)
 			}
 		case clipboard.FmtImage:
@@ -203,6 +211,10 @@ func eventDriven(s *storage.Storage) {
 			}
 			err = s.Save("image", data.Bytes, "", imgPath)
 			if err != nil {
+
+				if errors.Is(err, storage.ErrAlreadyExists) {
+					continue
+				}
 				log.Printf("error in save function: %v", err)
 			}
 		}
