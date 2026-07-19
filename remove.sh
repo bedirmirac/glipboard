@@ -42,10 +42,9 @@ echo "-> Removing configuration and database directories..."
 rm -rf "$HOME/.config/$APP_NAME"
 rm -rf "$HOME/.local/share/$APP_NAME"
 
-echo "-> Cleaning up local repository remnants..."
-rm -rf "./$APP_NAME" "./$APP_NAME-linux-amd64" "./$APP_NAME-darwin-arm64" "./$APP_NAME-darwin-amd64"
+echo "-> Cleaning up local database remnants (if any)..."
 rm -f ./glipboard.db ./glipboard.db-wal ./glipboard.db-shm
 
 echo "=========================================================="
-echo " Cleanup complete! All Glipboard components are removed."
+echo " Cleanup complete! All Glipboard system components are removed."
 echo "=========================================================="
