@@ -12,7 +12,9 @@ When you need to interact with your clipboard history, Glipboard provides a fast
 * **Terminal UI (TUI):** A clean, interactive terminal interface built for power users.
 * **Local Storage:** Stores your clipboard history locally using SQLite.
 * **Standalone Binary:** Compiled as a single, static executable with zero external dependencies.
-
+---
+![Glipboard screenshot](./assets/glipboard.png)
+---
 ## Installation
 
 ### Linux & macOS
