@@ -224,7 +224,7 @@ func (m model) View() tea.View {
 	pageInfo := fmt.Sprintf("\n--- Page %v / %v ---\n", currentPage, totalPage)
 	s += pageInfo
 	// The footer
-	s += "\nPress 'q' to quit, 'enter' twice to copy, 'd' twice to delete one, 'ctrl+r' to delete all \n If you pressed 'enter' or 'd' once and select item unintentialy, you can deselect it by pressing 'space'."
+	s += "\nPress 'q' to quit, 'enter' twice to copy, 'd' twice to delete one, \n 'ctrl+r' to delete all \n If you pressed 'enter' or 'd' once and select item unintentialy, \n you can deselect it by pressing 'space'."
 
 	return tea.NewView(s)
 }
