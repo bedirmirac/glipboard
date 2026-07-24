@@ -19,9 +19,10 @@ import (
 	"github.com/bedirmirac/glipboard/storage"
 	"golang.design/x/clipboard"
 	_ "golang.org/x/image/webp"
+	"gopkg.in/natefinch/lumberjack.v2"
 )
 
-func setupLogger() *os.File {
+func setupLogger() {
 	homeDir, err := os.UserHomeDir()
 	if err != nil {
 		homeDir = "."
@@ -31,17 +32,20 @@ func setupLogger() *os.File {
 
 	err = os.MkdirAll(configDir, 0o755)
 	if err != nil {
-		return nil
+		return
 	}
 
 	logPath := filepath.Join(configDir, ".glipboard.log")
-	logFile, err := os.OpenFile(logPath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0o666)
-	if err == nil {
-		log.SetOutput(logFile)
-		return logFile
+
+	logger := &lumberjack.Logger{
+		Filename:   logPath,
+		MaxSize:    5,  // opens new log file if current file reaches 5 MB
+		MaxBackups: 2,  // stores only last 2 log files
+		MaxAge:     15, // after 15 days deletes log files
+		Compress:   false,
 	}
 
-	return nil
+	log.SetOutput(logger)
 }
 
 func StartDaemon() {
@@ -144,10 +148,7 @@ func StartDaemon() {
 		}
 	}()
 
-	logFile := setupLogger()
-	if logFile != nil {
-		defer logFile.Close()
-	}
+	setupLogger()
 
 	os := runtime.GOOS
 	isWayland := getEnv()
