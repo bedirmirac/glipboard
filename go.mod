@@ -6,6 +6,7 @@ require (
 	charm.land/bubbletea/v2 v2.0.7
 	golang.design/x/clipboard v0.8.0
 	golang.org/x/image v0.44.0
+	gopkg.in/natefinch/lumberjack.v2 v2.2.1
 	modernc.org/sqlite v1.53.0
 )
 
