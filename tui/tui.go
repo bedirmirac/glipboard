@@ -224,13 +224,9 @@ func (m model) View() tea.View {
 	pageInfo := fmt.Sprintf("\n--- Page %v / %v ---\n", currentPage, totalPage)
 	s += pageInfo
 	// The footer
-	s += `Press space to select an item  
-	After selecting an item;
-	Press 'enter' to copy 
-	Press 'd' to delete one
-	Press 'ctrl+r' to delete all (no need to select an item) 
-	you can deselect it by pressing 'space'
-	Press 'q' to quit`
+	s += `Press 'q' to quit 'ctrl+r' to delete all (no need to select an item) 
+	Press 'space' to select an item. You can deselect it by pressing 'space'
+	After selecting an item;'enter' to copy 'd' to delete`
 
 	return tea.NewView(s)
 }
