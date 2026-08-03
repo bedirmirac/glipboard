@@ -1,9 +1,12 @@
 package tui
 
+import "strings"
+
 func maxCharOfString(s string) string {
-	if len(s) <= 25 {
-		return s
+	first, _, ok := strings.Cut(s, "\n")
+	if len(first) <= 25 && !ok {
+		return first
 	}
-	runes := []rune(s)
+	runes := []rune(first)
 	return string(runes[:25]) + "..."
 }
