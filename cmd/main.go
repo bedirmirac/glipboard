@@ -86,7 +86,6 @@ func StartDaemon() {
 		switch dataType {
 		case "text":
 			clipboard.Write(clipboard.FmtText, body)
-			log.Println("Text from client successfully written to clipboard.")
 			w.WriteHeader(http.StatusOK)
 
 		case "image":
@@ -192,13 +191,15 @@ func eventDriven(s *storage.Storage) {
 					}
 				}
 			}
-			err := s.Save("text", data.Bytes, textContent, "")
-			if err != nil {
+			if isOkToSave(data.Bytes) {
+				err := s.Save("text", data.Bytes, textContent, "")
+				if err != nil {
 
-				if errors.Is(err, storage.ErrAlreadyExists) {
-					continue
+					if errors.Is(err, storage.ErrAlreadyExists) {
+						continue
+					}
+					log.Printf("error in save function: %v", err)
 				}
-				log.Printf("error in save function: %v", err)
 			}
 		case clipboard.FmtImage:
 
@@ -230,7 +231,7 @@ func polling(s *storage.Storage) {
 		<-ticker.C
 		newText := clipboard.Read(clipboard.FmtText)
 		newImg := clipboard.Read(clipboard.FmtImage)
-		if string(newText) != "" {
+		if string(newText) != "" && isOkToSave(newText) {
 			if originalPath, isImage := getLocalImagePath(string(newText)); isImage {
 				imgData, err := os.ReadFile(originalPath)
 				if err == nil {
@@ -258,24 +259,25 @@ func polling(s *storage.Storage) {
 					}
 				}
 			}
-			err := s.Save("text", []byte(newText), string(newText), "")
-			if err != nil {
-				if errors.Is(err, storage.ErrAlreadyExists) {
-					continue
-				}
-				log.Printf("error during saving the content: %v", err)
-			}
-			isExceeded, err := s.IsLimitExceeded()
-			if err != nil {
-				log.Printf("error after saving: %v", err)
-			}
-			if isExceeded {
-				err := s.DeleteOldestRecord()
+			if isOkToSave(newText) {
+				err := s.Save("text", newText, string(newText), "")
 				if err != nil {
-					log.Printf("error while deleting the oldest record: %v", err)
+					if errors.Is(err, storage.ErrAlreadyExists) {
+						continue
+					}
+					log.Printf("error during saving the content: %v", err)
+				}
+				isExceeded, err := s.IsLimitExceeded()
+				if err != nil {
+					log.Printf("error after saving: %v", err)
+				}
+				if isExceeded {
+					err := s.DeleteOldestRecord()
+					if err != nil {
+						log.Printf("error while deleting the oldest record: %v", err)
+					}
 				}
 			}
-
 		} else if len(newImg) > 0 {
 			imgPath, err := getPath()
 			if err != nil {
