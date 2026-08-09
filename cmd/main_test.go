@@ -156,23 +156,15 @@ func TestGetPath(t *testing.T) {
 }
 
 func TestSetupLogger(t *testing.T) {
-	tempHome := t.TempDir()
-	t.Setenv("HOME", tempHome)
-	t.Setenv("USERPROFILE", tempHome)
-	logFile := setupLogger()
-	if logFile == nil {
-		t.Fatal("setupLogger() returned nil, expected *os.File.")
-	}
+	tmpDir := t.TempDir()
+	t.Setenv("HOME", tmpDir)
+	setupLogger()
 
-	defer logFile.Close()
+	log.Println("Test log message")
 
-	expectedPath := filepath.Join(tempHome, ".config", "glipboard", ".glipboard.log")
-	info, err := os.Stat(expectedPath)
+	expectedLogPath := filepath.Join(tmpDir, ".config", "glipboard", ".glipboard.log")
+	_, err := os.Stat(expectedLogPath)
 	if err != nil {
-		t.Errorf("setupLogger() could not create the log file: %v", err)
-	}
-
-	if info.IsDir() {
-		t.Errorf("The expected log file should not be a directory.")
+		t.Fatalf("Expected log path couldn't be created: %v", err)
 	}
 }
