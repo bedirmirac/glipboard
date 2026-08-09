@@ -83,14 +83,17 @@ if [ "$OS" = "Linux" ]; then
   cat >"$SYSTEMD_DIR/$APP_NAME.service" <<EOF
 [Unit]
 Description=Glipboard Daemon
-After=network.target
+After=graphical-session.target
+PartOf=graphical-session.target
 
 [Service]
+Type=simple
 ExecStart=$EXECUTABLE_PATH
 Restart=on-failure
+RestartSec=3
 
 [Install]
-WantedBy=default.target
+WantedBy=graphical-session.target
 EOF
 
   systemctl --user daemon-reload
