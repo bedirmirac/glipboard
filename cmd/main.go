@@ -185,17 +185,17 @@ func eventDriven(s *storage.Storage) {
 								continue
 							}
 							log.Printf("error during saving data to database: %v", err)
-						}else{
+						} else {
 							isExceeded, err := s.IsLimitExceeded()
-			if err != nil {
-				log.Printf("error during checking if limit is exceeded: %v", err)
-			}
-			if isExceeded {
-				err := s.DeleteOldestRecord()
-				if err != nil {
-					log.Printf("error while deleting the oldest record: %v", err)
-				}
-			}
+							if err != nil {
+								log.Printf("error during checking if limit is exceeded: %v", err)
+							}
+							if isExceeded {
+								err := s.DeleteOldestRecord()
+								if err != nil {
+									log.Printf("error while deleting the oldest record: %v", err)
+								}
+							}
 						}
 						continue
 					}
@@ -209,17 +209,17 @@ func eventDriven(s *storage.Storage) {
 						continue
 					}
 					log.Printf("error in save function: %v", err)
-				} else{
+				} else {
 					isExceeded, err := s.IsLimitExceeded()
-			if err != nil {
-				log.Printf("error during checking if limit is exceeded: %v", err)
-			}
-			if isExceeded {
-				err := s.DeleteOldestRecord()
-				if err != nil {
-					log.Printf("error while deleting the oldest record: %v", err)
-				}
-			}
+					if err != nil {
+						log.Printf("error during checking if limit is exceeded: %v", err)
+					}
+					if isExceeded {
+						err := s.DeleteOldestRecord()
+						if err != nil {
+							log.Printf("error while deleting the oldest record: %v", err)
+						}
+					}
 				}
 			}
 		case clipboard.FmtImage:
@@ -239,17 +239,17 @@ func eventDriven(s *storage.Storage) {
 					continue
 				}
 				log.Printf("error in save function: %v", err)
-			} else{
+			} else {
 				isExceeded, err := s.IsLimitExceeded()
-			if err != nil {
-				log.Printf("error during checking if limit is exceeded: %v", err)
-			}
-			if isExceeded {
-				err := s.DeleteOldestRecord()
 				if err != nil {
-					log.Printf("error while deleting the oldest record: %v", err)
+					log.Printf("error during checking if limit is exceeded: %v", err)
 				}
-			}
+				if isExceeded {
+					err := s.DeleteOldestRecord()
+					if err != nil {
+						log.Printf("error while deleting the oldest record: %v", err)
+					}
+				}
 			}
 		}
 	}
