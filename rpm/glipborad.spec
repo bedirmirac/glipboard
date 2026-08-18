@@ -34,3 +34,5 @@ install -Dpm 0755 %{name} %{buildroot}%{_bindir}/%{name}
 * Tue Aug 18 2026 Miraç Bedir <eposta@adresin.com> - 2.1.1-1
 - Update to version 2.1.1
 - Build as a statically linked pure Go binary (CGO_ENABLED=0)
+
+%global debug_package %{nil}
