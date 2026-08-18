@@ -1,0 +1,9 @@
+[Desktop Entry]
+Name=Glipboard TUI
+Comment=Terminal UI for Glipboard
+Exec=sh -c 'xdg-terminal-exec glipboard --tui=true || foot -e glipboard --tui=true || kitty glipboard --tui=true || ghostty -e glipboard --tui=true || alacritty -e glipboard --tui=true || wezterm start -- glipboard --tui=true'
+Icon=glipboard
+Terminal=false
+Type=Application
+Categories=Utility;
+StartupNotify=false
