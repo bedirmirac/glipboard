@@ -1,6 +1,6 @@
 Name:           glipboard
 Version:        2.1.1
-Release:        1%{?dist}
+Release:        2%{?dist}
 Summary:        A terminal-based clipboard manager
 
 License:        MIT
@@ -53,7 +53,7 @@ install -Dpm 0644 %{SOURCE2} %{buildroot}%{_userunitdir}/%{name}.service
 %{_userunitdir}/%{name}.service
 
 %changelog
-* Tue Aug 18 2026 Miraç Bedir - 2.1.1-1
+* Tue Aug 18 2026 Miraç Bedir - 2.1.1-2
 - Update to version 2.1.1
 - Add systemd daemon service and desktop entry for TUI
 
