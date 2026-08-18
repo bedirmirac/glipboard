@@ -19,6 +19,7 @@ clipboard history.
 
 %build
 export CGO_ENABLED=0
+export GOTOOLCHAIN=auto
 go build -v -trimpath -o %{name} .
 
 %install
