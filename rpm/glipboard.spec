@@ -1,6 +1,6 @@
 Name:           glipboard
 Version:        2.1.1
-Release:        2%{?dist}
+Release:        3%{?dist}
 Summary:        A terminal-based clipboard manager
 
 License:        MIT
@@ -8,6 +8,7 @@ URL:            https://github.com/bedirmirac/glipboard
 Source0:        %{url}/archive/v%{version}.tar.gz
 Source1:        glipboard.desktop
 Source2:        glipboard.service
+Source3:        glipboard.png
 
 BuildRequires:  golang >= 1.20
 %{?systemd_requires}
@@ -27,14 +28,13 @@ export GOTOOLCHAIN=auto
 go build -v -trimpath -o %{name} .
 
 %install
-# Binary dosyasını kur
 install -Dpm 0755 %{name} %{buildroot}%{_bindir}/%{name}
 
-# .desktop dosyasını uygulama menüsüne kur
 install -Dpm 0644 %{SOURCE1} %{buildroot}%{_datadir}/applications/%{name}.desktop
 
-# Systemd kullanıcı servis dosyasını kur
 install -Dpm 0644 %{SOURCE2} %{buildroot}%{_userunitdir}/%{name}.service
+
+install -Dpm 0644 %{SOURCE3} %{buildroot}%{_datadir}/icons/hicolor/256x256/apps/%{name}.png
 
 %post
 %systemd_user_post %{name}.service
@@ -51,10 +51,10 @@ install -Dpm 0644 %{SOURCE2} %{buildroot}%{_userunitdir}/%{name}.service
 %{_bindir}/%{name}
 %{_datadir}/applications/%{name}.desktop
 %{_userunitdir}/%{name}.service
+%{_datadir}/icons/hicolor/256x256/apps/%{name}.png
 
 %changelog
-* Tue Aug 18 2026 Miraç Bedir - 2.1.1-2
-- Update to version 2.1.1
-- Add systemd daemon service and desktop entry for TUI
+* Tue Aug 18 2026 Miraç Bedir - 2.1.1-3
+- Add systemd daemon service, desktop entry, and application icon support
 
 %global debug_package %{nil}
