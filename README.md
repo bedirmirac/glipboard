@@ -17,6 +17,15 @@ When you need to interact with your clipboard history, Glipboard provides a fast
 ---
 ## Installation
 
+
+### Fedora
+
+```
+sudo dnf copr enable bedirmirac/glipboard
+sudo dnf install glipboard
+systemctl --user enable --now glipboard.service
+```
+
 ### Linux & macOS
 Run the following script to automatically download the latest binary, configure the background daemon, and set up the desktop entry:
 
@@ -47,6 +56,14 @@ Or if you installed glipborad using given scripts you can open the tui with desk
 ## Uninstallation
 
 If you wish to completely remove Glipboard, its background service, and all local data (including the SQLite database) from your system, you can run the uninstallation scripts.
+
+## Fedora 
+
+```
+sudo dnf remove glipboard
+sudo dnf copr remove bedirmirac/glipboard
+rm -rf ~/.config/glipboard
+```
 
 ### Linux & macOS
 Run the following command in your terminal:
