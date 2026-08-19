@@ -58,84 +58,78 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.cursor = 0
 			}
 		case "enter":
-			_, ok := m.selected[m.cursor]
-			if ok {
-				/*copy selected logic */
-				choice := m.choices[m.cursor]
-				var req *http.Request
-				var err error
+			/*copy selected logic */
+			choice := m.choices[m.cursor]
+			var req *http.Request
+			var err error
 
-				if choice.Type == "text" {
-					req, err = http.NewRequest("POST", "http://127.0.0.1:49321/request?type=text", bytes.NewBufferString(choice.Context))
-				} else if choice.Type == "image" {
-					req, err = http.NewRequest("POST", "http://127.0.0.1:49321/request?type=image", bytes.NewBufferString(choice.FilePath))
-				} else {
-					m.message = "Error: Unsupported data type."
-					return m, nil
+			if choice.Type == "text" {
+				req, err = http.NewRequest("POST", "http://127.0.0.1:49321/request?type=text", bytes.NewBufferString(choice.Context))
+			} else if choice.Type == "image" {
+				req, err = http.NewRequest("POST", "http://127.0.0.1:49321/request?type=image", bytes.NewBufferString(choice.FilePath))
+			} else {
+				m.message = "Error: Unsupported data type."
+				return m, nil
+			}
+
+			if err != nil {
+				m.message = "Error: Could not create HTTP request."
+				return m, nil
+			}
+
+			/* Send the request to the background Daemon */
+			client := &http.Client{}
+			resp, err := client.Do(req)
+			if err != nil {
+				m.message = fmt.Sprintf("ERROR: Could not connect to daemon: %v", err)
+				return m, nil
+			}
+			defer resp.Body.Close()
+
+			if resp.StatusCode != http.StatusOK {
+				m.message = fmt.Sprintf("ERROR: Daemon returned status code %d", resp.StatusCode)
+				return m, nil
+			}
+
+			return m, tea.Quit
+		case "d":
+			/*delete function*/
+			choice := m.choices[m.cursor]
+			var req, req1 *http.Request
+			var reqs []*http.Request
+			var err error
+			req, err = http.NewRequest("POST", "http://127.0.0.1:49321/request?type=delete", bytes.NewBufferString(choice.Hash))
+			if err == nil {
+				reqs = append(reqs, req)
+			}
+			if choice.Type == "image" {
+				req1, err = http.NewRequest("POST", "http://127.0.0.1:49321/request?type=deleteImagePath", bytes.NewBufferString(choice.FilePath))
+				if err == nil {
+					reqs = append(reqs, req1)
 				}
+			}
 
-				if err != nil {
-					m.message = "Error: Could not create HTTP request."
-					return m, nil
-				}
+			if err != nil {
+				m.message = "Error: Could not create HTTP request."
+				return m, nil
+			}
 
-				/* Send the request to the background Daemon */
+			/* Send the request to the background Daemon */
+			for _, r := range reqs {
 				client := &http.Client{}
-				resp, err := client.Do(req)
+				r, err := client.Do(r)
 				if err != nil {
 					m.message = fmt.Sprintf("ERROR: Could not connect to daemon: %v", err)
 					return m, nil
 				}
-				defer resp.Body.Close()
-
-				if resp.StatusCode != http.StatusOK {
-					m.message = fmt.Sprintf("ERROR: Daemon returned status code %d", resp.StatusCode)
+				defer r.Body.Close()
+				if r.StatusCode != http.StatusOK {
+					m.message = fmt.Sprintf("ERROR: Daemon returned status code %d", r.StatusCode)
 					return m, nil
 				}
-
-				return m, tea.Quit
 			}
-		case "d":
-			_, ok := m.selected[m.cursor]
-			if ok {
-				/*delete function*/
-				choice := m.choices[m.cursor]
-				var req, req1 *http.Request
-				var reqs []*http.Request
-				var err error
-				req, err = http.NewRequest("POST", "http://127.0.0.1:49321/request?type=delete", bytes.NewBufferString(choice.Hash))
-				if err == nil {
-					reqs = append(reqs, req)
-				}
-				if choice.Type == "image" {
-					req1, err = http.NewRequest("POST", "http://127.0.0.1:49321/request?type=deleteImagePath", bytes.NewBufferString(choice.FilePath))
-					if err == nil {
-						reqs = append(reqs, req1)
-					}
-				}
 
-				if err != nil {
-					m.message = "Error: Could not create HTTP request."
-					return m, nil
-				}
-
-				/* Send the request to the background Daemon */
-				for _, r := range reqs {
-					client := &http.Client{}
-					r, err := client.Do(r)
-					if err != nil {
-						m.message = fmt.Sprintf("ERROR: Could not connect to daemon: %v", err)
-						return m, nil
-					}
-					defer r.Body.Close()
-					if r.StatusCode != http.StatusOK {
-						m.message = fmt.Sprintf("ERROR: Daemon returned status code %d", r.StatusCode)
-						return m, nil
-					}
-				}
-
-				return m, tea.Quit
-			}
+			return m, tea.Quit
 
 		case "ctrl+r":
 			var req *http.Request
@@ -162,17 +156,6 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 			m.message = "All of the contents is deleted!"
 			return m, tea.Quit
-		case "space":
-			_, ok := m.selected[m.cursor]
-			if ok {
-				delete(m.selected, m.cursor)
-			} else {
-				if len(m.selected) > 0 {
-					m.message = "You can only select one item"
-				} else {
-					m.selected[m.cursor] = struct{}{}
-				}
-			}
 		}
 	}
 	return m, nil
@@ -198,19 +181,15 @@ func (m model) View() tea.View {
 
 		cursor := " "
 		if m.cursor == realIndex {
-			cursor = ">"
+			cursor = "->"
 		}
 
-		checked := " "
-		if _, ok := m.selected[i]; ok {
-			checked = "x"
-		}
 		if choice.Context == "" {
 			choice.Context = "Image->" + choice.FilePath
 		}
 
 		choice.Context = maxCharOfString(choice.Context)
-		s += fmt.Sprintf("\n%v [%v] %v\n", cursor, checked, choice.Context)
+		s += fmt.Sprintf("\n %v   %v \n", cursor, choice.Context)
 	}
 
 	if m.message != "" {
@@ -224,9 +203,9 @@ func (m model) View() tea.View {
 	pageInfo := fmt.Sprintf("\n--- Page %v / %v ---\n", currentPage, totalPage)
 	s += pageInfo
 	// The footer
-	s += `Press 'q' to quit 'ctrl+r' to delete all (no need to select an item) 
-	Press 'space' to select an item. You can deselect it by pressing 'space'
-	After selecting an item;'enter' to copy 'd' to delete`
+	s += `Press 'q' to quit 'ctrl+r' to delete all (no need to select an item)
+	  	 '>' shows which item will be affected by your proccess
+		  Press 'enter' to copy;'d' to delete the one shown by '>'`
 
 	return tea.NewView(s)
 }
