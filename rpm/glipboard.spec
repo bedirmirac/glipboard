@@ -1,6 +1,6 @@
 Name:           glipboard
-Version:        2.1.1
-Release:        3%{?dist}
+Version:        2.1.2
+Release:        1%{?dist}
 Summary:        A terminal-based clipboard manager
 
 License:        MIT
@@ -54,7 +54,6 @@ install -Dpm 0644 %{SOURCE3} %{buildroot}%{_datadir}/icons/hicolor/256x256/apps/
 %{_datadir}/icons/hicolor/256x256/apps/%{name}.png
 
 %changelog
-* Tue Aug 18 2026 Miraç Bedir - 2.1.1-3
-- Add systemd daemon service, desktop entry, and application icon support
-
+* Tue Aug 19 2026 Miraç Bedir - 2.1.2-1
+- No more selection process, now just copy or delete without entering 'space'
 %global debug_package %{nil}
