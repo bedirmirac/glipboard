@@ -3,9 +3,9 @@ package storage
 import (
 	"database/sql"
 	"fmt"
-	"os"
 	"path/filepath"
 
+	"github.com/bedirmirac/glipboard/helper"
 	_ "modernc.org/sqlite"
 )
 
@@ -14,18 +14,7 @@ type Storage struct {
 }
 
 func NewStorage() (*Storage, error) {
-	homeDir, err := os.UserHomeDir()
-	if err != nil {
-		return nil, fmt.Errorf("error locating home directory: %v", err)
-	}
-
-	appDir := filepath.Join(homeDir, ".config", "glipboard")
-
-	err = os.MkdirAll(appDir, 0o755)
-	if err != nil {
-		return nil, fmt.Errorf("error creating directory: %v", err)
-	}
-
+	appDir, err := helper.GetConfigFolder()
 	dbPath := filepath.Join(appDir, "clipboard.db")
 
 	db, err := sql.Open("sqlite", dbPath)
