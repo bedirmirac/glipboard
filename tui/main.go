@@ -8,12 +8,7 @@ import (
 	"github.com/bedirmirac/glipboard/storage"
 )
 
-func StartTUI() {
-	s, err := storage.NewStorage()
-	if err != nil {
-		fmt.Printf("there's been an error during connecting database: %v", err)
-		os.Exit(1)
-	}
+func StartTUI(s *storage.Storage) {
 	items, err := s.Fetch()
 	if err != nil {
 		fmt.Printf("there's been an error during fetching from database: %v", err)
