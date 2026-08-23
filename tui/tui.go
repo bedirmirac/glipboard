@@ -204,8 +204,8 @@ func (m model) View() tea.View {
 	s += pageInfo
 	// The footer
 	s += `Press 'q' to quit 'ctrl+r' to delete all (no need to select an item)
-	  	 '>' shows which item will be affected by your proccess
-		  Press 'enter' to copy;'d' to delete the one shown by '>'`
+	'->' shows which item will be affected by your process
+	Press 'enter' to copy;'d' to delete the one shown by '->'`
 
 	return tea.NewView(s)
 }
