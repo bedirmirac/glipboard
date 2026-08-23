@@ -1,5 +1,5 @@
 Name:           glipboard
-Version:        2.1.2
+Version:        2.2.0
 Release:        1%{?dist}
 Summary:        A terminal-based clipboard manager
 
@@ -56,4 +56,6 @@ install -Dpm 0644 %{SOURCE3} %{buildroot}%{_datadir}/icons/hicolor/256x256/apps/
 %changelog
 * Tue Aug 19 2026 Miraç Bedir - 2.1.2-1
 - No more selection process, now just copy or delete without entering 'space'
+* Sun Aug 23 2026 Miraç Bedir - 2.2.0-1 
+- Users now can set how many items will be stored. Usage: glipboard -o 'limit you want to set'
 %global debug_package %{nil}
