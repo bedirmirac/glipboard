@@ -16,6 +16,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/bedirmirac/glipboard/helper"
 	"github.com/bedirmirac/glipboard/storage"
 	"golang.design/x/clipboard"
 	_ "golang.org/x/image/webp"
@@ -40,7 +41,7 @@ func setupLogger() {
 	logger := &lumberjack.Logger{
 		Filename:   logPath,
 		MaxSize:    5,  // opens new log file if current file reaches 5 MB
-		MaxBackups: 2,  // stores only last 2 log files
+		MaxBackups: 0,  // no old log files are stored
 		MaxAge:     15, // after 15 days deletes log files
 		Compress:   false,
 	}
@@ -48,15 +49,10 @@ func setupLogger() {
 	log.SetOutput(logger)
 }
 
-func StartDaemon() {
+func StartDaemon(s *storage.Storage) {
 	err := clipboard.Init()
 	if err != nil {
 		panic(err)
-	}
-
-	s, err := storage.NewStorage()
-	if err != nil {
-		log.Fatalf("error during starting the database: %v", err)
 	}
 
 	listener, err := net.Listen("tcp", "127.0.0.1:49321")
@@ -186,7 +182,12 @@ func eventDriven(s *storage.Storage) {
 							}
 							log.Printf("error during saving data to database: %v", err)
 						} else {
-							isExceeded, err := s.IsLimitExceeded()
+							offsetValue, err := helper.ReadLimit()
+							if err != nil {
+								offsetValue = 50
+								log.Printf("Your limit change request failed: %v", err)
+							}
+							isExceeded, err := s.IsLimitExceeded(offsetValue)
 							if err != nil {
 								log.Printf("error during checking if limit is exceeded: %v", err)
 							}
@@ -210,7 +211,12 @@ func eventDriven(s *storage.Storage) {
 					}
 					log.Printf("error in save function: %v", err)
 				} else {
-					isExceeded, err := s.IsLimitExceeded()
+					offsetValue, err := helper.ReadLimit()
+					if err != nil {
+						offsetValue = 50
+						log.Printf("Your limit change request failed: %v", err)
+					}
+					isExceeded, err := s.IsLimitExceeded(offsetValue)
 					if err != nil {
 						log.Printf("error during checking if limit is exceeded: %v", err)
 					}
@@ -240,7 +246,12 @@ func eventDriven(s *storage.Storage) {
 				}
 				log.Printf("error in save function: %v", err)
 			} else {
-				isExceeded, err := s.IsLimitExceeded()
+				offsetValue, err := helper.ReadLimit()
+				if err != nil {
+					offsetValue = 50
+					log.Printf("Your limit change request failed: %v", err)
+				}
+				isExceeded, err := s.IsLimitExceeded(offsetValue)
 				if err != nil {
 					log.Printf("error during checking if limit is exceeded: %v", err)
 				}
@@ -280,7 +291,12 @@ func polling(s *storage.Storage) {
 						if err != nil {
 							log.Printf("error during writing local image: %v", err)
 						}
-						isExceeded, _ := s.IsLimitExceeded()
+						offsetValue, err := helper.ReadLimit()
+						if err != nil {
+							offsetValue = 50
+							log.Printf("Your limit change request failed: %v", err)
+						}
+						isExceeded, err := s.IsLimitExceeded(offsetValue)
 						if isExceeded {
 							err := s.DeleteOldestRecord()
 							if err != nil {
@@ -299,7 +315,12 @@ func polling(s *storage.Storage) {
 					}
 					log.Printf("error during saving the content: %v", err)
 				}
-				isExceeded, err := s.IsLimitExceeded()
+				offsetValue, err := helper.ReadLimit()
+				if err != nil {
+					offsetValue = 50
+					log.Printf("Your limit change request failed: %v", err)
+				}
+				isExceeded, err := s.IsLimitExceeded(offsetValue)
 				if err != nil {
 					log.Printf("error during checking if limit is exceeded: %v", err)
 				}
@@ -328,7 +349,12 @@ func polling(s *storage.Storage) {
 			if err != nil {
 				log.Printf("error during writing local image: %v", err)
 			}
-			isExceeded, err := s.IsLimitExceeded()
+			offsetValue, err := helper.ReadLimit()
+			if err != nil {
+				offsetValue = 50
+				log.Printf("Your limit change request failed: %v", err)
+			}
+			isExceeded, err := s.IsLimitExceeded(offsetValue)
 			if err != nil {
 				log.Printf("error during checking if limit is exceeded: %v", err)
 			}
@@ -344,12 +370,11 @@ func polling(s *storage.Storage) {
 }
 
 func getPath() (string, error) {
-	homeDir, err := os.UserHomeDir()
+	conf, err := helper.GetConfigFolder()
 	if err != nil {
-		homeDir = "."
+		return "", err
 	}
-
-	picturesDir := filepath.Join(homeDir, ".config", "glipboard", "Pictures")
+	picturesDir := filepath.Join(conf, "Pictures")
 
 	err = os.MkdirAll(picturesDir, 0o755)
 	if err != nil {

@@ -65,12 +65,12 @@ func (s *Storage) DeleteAll() error {
 	return nil
 }
 
-func (s *Storage) IsLimitExceeded() (bool, error) {
+func (s *Storage) IsLimitExceeded(offsetValue int) (bool, error) {
 	var dummy int
 
-	query := `SELECT 1 FROM clipboard LIMIT 1 OFFSET 50`
+	query := `SELECT 1 FROM clipboard LIMIT 1 OFFSET ?`
 
-	err := s.db.QueryRow(query).Scan(&dummy)
+	err := s.db.QueryRow(query, offsetValue).Scan(&dummy)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return false, nil
@@ -92,5 +92,31 @@ func (s *Storage) DeleteOldestRecord() error {
 		return fmt.Errorf("error during deleting the oldest record: %v", err)
 	}
 
+	return nil
+}
+
+func (s *Storage) Count() (int, error) {
+	var count int
+	query := `SELECT COUNT(*) FROM clipboard`
+
+	err := s.db.QueryRow(query).Scan(&count)
+	if err != nil {
+		return 0, fmt.Errorf("query error during counting items: %v", err)
+	}
+
+	return count, nil
+}
+
+func (s *Storage) DeleteFromX(x int) error {
+	query := `DELETE FROM clipboard WHERE rowid >= ?`
+
+	res, err := s.db.Exec(query, x)
+	if err != nil {
+		return fmt.Errorf("error during deleting old records for new limit: %v", err)
+	}
+	_, err = res.RowsAffected()
+	if err != nil {
+		return fmt.Errorf("DeleteFromX() is unsuccessful, nothing changed: %v", err)
+	}
 	return nil
 }
