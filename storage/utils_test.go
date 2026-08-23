@@ -83,7 +83,7 @@ func TestIsLimitExceeded(t *testing.T) {
 		}
 	}
 
-	isExceeded, err := s.IsLimitExceeded()
+	isExceeded, err := s.IsLimitExceeded(50)
 	if err != nil {
 		t.Fatalf("no error expected, but there is an error: %v", err)
 	}
@@ -96,7 +96,7 @@ func TestIsLimitExceeded(t *testing.T) {
 		t.Fatalf("error during inserting test data: %v", err)
 	}
 
-	isExceeded, err = s.IsLimitExceeded()
+	isExceeded, err = s.IsLimitExceeded(50)
 	if err != nil {
 		t.Fatalf("no error expected, but there is an error: %v", err)
 	}
@@ -262,5 +262,89 @@ func TestSave(t *testing.T) {
 				t.Errorf("unsupported data type")
 			}
 		})
+	}
+}
+
+func CountTest(t *testing.T) {
+	db := setupTestDb(t)
+	s := &Storage{db: db}
+	tests := []struct {
+		name string
+		text string
+		hash string
+	}{
+		{"test", "Text", "as23214as"},
+		{"test1", "Text1", "aggf2312a"},
+	}
+
+	q := `INSERT INTO clipboard (hash, type, context, file_path) VALUES (?, 'text', ?, '')`
+	for _, test := range tests {
+		_, err := db.Exec(q, test.hash, test.text)
+		if err != nil {
+			t.Fatalf("error during saving the test data to test db: %v", err)
+		}
+	}
+	functionCount, err := s.Count()
+	var testCount int
+	if err != nil {
+		t.Fatalf("error Count(): %v", err)
+	}
+	query := `SELECT COUNT(*) FROM clipboard`
+	err = db.QueryRow(query).Scan(&testCount)
+	if err != nil {
+		t.Fatalf("error during counting test data: %v", err)
+	}
+
+	if functionCount != testCount {
+		t.Fatalf("function Count() and test Count() are not the same: %v", err)
+	}
+}
+
+func TestDeleteFromX(t *testing.T) {
+	db := setupTestDb(t)
+	s := &Storage{db: db}
+	insertQuery := `INSERT INTO clipboard (hash, type, context, file_path) VALUES (?, ?, ?, ?)`
+	for i := 1; i <= 5; i++ {
+		hash := fmt.Sprintf("test_hash_%d", i)
+		_, err := db.Exec(insertQuery, hash, "text", "test_context", "test_path")
+		if err != nil {
+			t.Fatalf("error during inserting test data: %v", err)
+		}
+	}
+
+	err := s.DeleteFromX(4)
+	if err != nil {
+		t.Fatalf("DeleteFromX() has returned an unexpected error: %v", err)
+	}
+	var count int
+	err = db.QueryRow(`SELECT COUNT(*) FROM clipboard`).Scan(&count)
+	if err != nil {
+		t.Fatalf("couldn't calculated the remaining row: %v", err)
+	}
+
+	if count != 3 {
+		t.Errorf("expected number of records 3, but there %d records exist", count)
+	}
+
+	rows, err := db.Query(`SELECT rowid FROM clipboard ORDER BY rowid ASC`)
+	if err != nil {
+		t.Fatalf("error during checking rows: %v", err)
+	}
+	defer rows.Close()
+
+	var remainingRowIDs []int
+	for rows.Next() {
+		var id int
+		if err := rows.Scan(&id); err != nil {
+			t.Fatalf("error during scanning row : %v", err)
+		}
+		remainingRowIDs = append(remainingRowIDs, id)
+	}
+
+	expectedIDs := []int{1, 2, 3}
+	for i, expectedID := range expectedIDs {
+		if remainingRowIDs[i] != expectedID {
+			t.Errorf("expected rowid %d, but %d found", expectedID, remainingRowIDs[i])
+		}
 	}
 }
