@@ -108,7 +108,7 @@ func (s *Storage) Count() (int, error) {
 }
 
 func (s *Storage) DeleteFromX(x int) error {
-	query := `DELETE FROM clipboard WHERE rowid >= ?`
+	query := `DELETE FROM clipboard WHERE rowid <= ?`
 
 	res, err := s.db.Exec(query, x)
 	if err != nil {
