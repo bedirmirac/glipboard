@@ -316,14 +316,15 @@ func TestDeleteFromX(t *testing.T) {
 	if err != nil {
 		t.Fatalf("DeleteFromX() has returned an unexpected error: %v", err)
 	}
+
 	var count int
 	err = db.QueryRow(`SELECT COUNT(*) FROM clipboard`).Scan(&count)
 	if err != nil {
-		t.Fatalf("couldn't calculated the remaining row: %v", err)
+		t.Fatalf("couldn't calculate the remaining row: %v", err)
 	}
 
-	if count != 3 {
-		t.Errorf("expected number of records 3, but there %d records exist", count)
+	if count != 1 {
+		t.Errorf("expected number of records 1, but there %d records exist", count)
 	}
 
 	rows, err := db.Query(`SELECT rowid FROM clipboard ORDER BY rowid ASC`)
@@ -341,7 +342,11 @@ func TestDeleteFromX(t *testing.T) {
 		remainingRowIDs = append(remainingRowIDs, id)
 	}
 
-	expectedIDs := []int{1, 2, 3}
+	expectedIDs := []int{5}
+	if len(remainingRowIDs) != len(expectedIDs) {
+		t.Fatalf("expected %d remaining rows, got %d", len(expectedIDs), len(remainingRowIDs))
+	}
+
 	for i, expectedID := range expectedIDs {
 		if remainingRowIDs[i] != expectedID {
 			t.Errorf("expected rowid %d, but %d found", expectedID, remainingRowIDs[i])
