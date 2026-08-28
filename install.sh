@@ -15,8 +15,7 @@ echo "=========================================================="
 echo " WARNING: Glipboard Installation"
 echo "=========================================================="
 echo "This application will be configured to start automatically"
-echo "in the background (as a Daemon/Service) upon system boot"
-echo "to manage clipboard operations."
+echo "in the background upon system login to manage clipboard operations."
 echo ""
 echo "If you do not want the application to start automatically,"
 echo "you can abort the installation now."
@@ -67,45 +66,46 @@ else
   exit 1
 fi
 
-# 3. Setup System Daemons and Desktop Entries
+# 3. Setup Autostart and Desktop Entries for Linux/macOS
 if [ "$OS" = "Linux" ]; then
-  echo "-> Linux detected. Setting up Systemd service and .desktop entry..."
+  echo "-> Linux detected. Setting up Autostart and Desktop entries..."
 
   # Download and set up the icon
   ICON_DIR="$HOME/.local/share/icons"
   mkdir -p "$ICON_DIR"
   curl -sL --fail "$ICON_URL_BASE/icon.png" -o "$ICON_DIR/$APP_NAME.png" || echo "Warning: Failed to download icon.png"
 
-  # Systemd Service (Background daemon)
-  SYSTEMD_DIR="$HOME/.config/systemd/user"
-  mkdir -p "$SYSTEMD_DIR"
+  # Clean up old systemd service if it exists from previous installations
+  if [ -f "$HOME/.config/systemd/user/$APP_NAME.service" ]; then
+    echo "-> Cleaning up old systemd service..."
+    systemctl --user stop "$APP_NAME.service" 2>/dev/null || true
+    systemctl --user disable "$APP_NAME.service" 2>/dev/null || true
+    rm -f "$HOME/.config/systemd/user/$APP_NAME.service"
+    systemctl --user daemon-reload 2>/dev/null || true
+  fi
 
-  cat >"$SYSTEMD_DIR/$APP_NAME.service" <<EOF
-[Unit]
-Description=Glipboard Daemon
-After=graphical-session.target
-PartOf=graphical-session.target
+  # XDG Autostart Entry (Guarantees automatic background startup on every login/reboot across all desktop environments & Wayland WMs)
+  AUTOSTART_DIR="$HOME/.config/autostart"
+  mkdir -p "$AUTOSTART_DIR"
 
-[Service]
-Type=simple
-ExecStart=$EXECUTABLE_PATH
-Restart=on-failure
-RestartSec=3
-
-[Install]
-WantedBy=graphical-session.target
+  cat >"$AUTOSTART_DIR/$APP_NAME.desktop" <<EOF
+[Desktop Entry]
+Type=Application
+Name=Glipboard Daemon
+Comment=Background clipboard manager for Glipboard
+Exec=$EXECUTABLE_PATH
+X-GNOME-Autostart-enabled=true
+Terminal=false
+Categories=Utility;
 EOF
+  echo "-> Autostart entry configured."
 
-  systemctl --user daemon-reload
-  systemctl --user enable --now "$APP_NAME.service"
-  echo "-> Systemd service enabled and started."
-
-  # Desktop Entry (For TUI)
+  # Desktop Entry (For TUI Launcher)
   DESKTOP_DIR="$HOME/.local/share/applications"
   mkdir -p "$DESKTOP_DIR"
 
   cat >"$DESKTOP_DIR/$APP_NAME.desktop" <<EOF
-[Desktop Entry]
+[DesktopEntry]
 Name=Glipboard TUI
 Comment=Terminal UI for Glipboard
 Exec=$EXECUTABLE_PATH --tui=true
@@ -114,7 +114,7 @@ Terminal=true
 Type=Application
 Categories=Utility;
 EOF
-  echo "-> Desktop application (.desktop) created."
+  echo "-> Desktop application (.desktop) created for TUI."
 
 elif [ "$OS" = "Darwin" ]; then
   echo "-> macOS detected. Setting up LaunchAgent and .app..."
@@ -163,6 +163,5 @@ fi
 
 echo "=========================================================="
 echo " Installation Complete! "
-echo " Glipboard is now running in the background."
-echo " You can open 'Glipboard TUI' from your application menu."
+echo " Glipboard is now configured to start automatically on login."
 echo "=========================================================="
