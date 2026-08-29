@@ -15,7 +15,8 @@ echo "=========================================================="
 echo " WARNING: Glipboard Installation"
 echo "=========================================================="
 echo "This application will be configured to start automatically"
-echo "in the background upon system login to manage clipboard operations."
+echo "in the background upon system boot and persist after logout"
+echo "to manage clipboard operations continuously."
 echo ""
 echo "If you do not want the application to start automatically,"
 echo "you can abort the installation now."
@@ -66,46 +67,61 @@ else
   exit 1
 fi
 
-# 3. Setup Autostart and Desktop Entries for Linux/macOS
+# 3. Setup Autostart and Services for Linux/macOS
 if [ "$OS" = "Linux" ]; then
-  echo "-> Linux detected. Setting up Autostart and Desktop entries..."
+  echo "-> Linux detected. Setting up Systemd User Service..."
 
   # Download and set up the icon
   ICON_DIR="$HOME/.local/share/icons"
   mkdir -p "$ICON_DIR"
   curl -sL --fail "$ICON_URL_BASE/icon.png" -o "$ICON_DIR/$APP_NAME.png" || echo "Warning: Failed to download icon.png"
 
+  # Enable systemd lingering so the service runs even after logout (may ask for sudo password)
+  echo "-> Enabling systemd user lingering for persistence..."
+  sudo loginctl enable-linger "$USER" 2>/dev/null || echo "Warning: Could not enable linger automatically. You may need to run: sudo loginctl enable-linger $USER"
+
+  # Setup Systemd User Service for background daemon
+  SYSTEMD_DIR="$HOME/.config/systemd/user"
+  mkdir -p "$SYSTEMD_DIR"
+  SERVICE_FILE="$SYSTEMD_DIR/$APP_NAME.service"
+
   # Clean up old systemd service if it exists from previous installations
-  if [ -f "$HOME/.config/systemd/user/$APP_NAME.service" ]; then
+  if [ -f "$SERVICE_FILE" ]; then
     echo "-> Cleaning up old systemd service..."
     systemctl --user stop "$APP_NAME.service" 2>/dev/null || true
     systemctl --user disable "$APP_NAME.service" 2>/dev/null || true
-    rm -f "$HOME/.config/systemd/user/$APP_NAME.service"
-    systemctl --user daemon-reload 2>/dev/null || true
   fi
 
-  # XDG Autostart Entry (Guarantees automatic background startup on every login/reboot across all desktop environments & Wayland WMs)
-  AUTOSTART_DIR="$HOME/.config/autostart"
-  mkdir -p "$AUTOSTART_DIR"
+  # Clean up old XDG autostart entry if it exists
+  if [ -f "$HOME/.config/autostart/$APP_NAME.desktop" ]; then
+    rm -f "$HOME/.config/autostart/$APP_NAME.desktop"
+  fi
 
-  cat >"$AUTOSTART_DIR/$APP_NAME.desktop" <<EOF
-[Desktop Entry]
-Type=Application
-Name=Glipboard Daemon
-Comment=Background clipboard manager for Glipboard
-Exec=$EXECUTABLE_PATH
-X-GNOME-Autostart-enabled=true
-Terminal=false
-Categories=Utility;
+  cat > "$SERVICE_FILE" <<EOF
+[Unit]
+Description=Glipboard Background Clipboard Manager Daemon
+After=network.target
+
+[Service]
+ExecStart=$EXECUTABLE_PATH
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=default.target
 EOF
-  echo "-> Autostart entry configured."
 
-  # Desktop Entry (For TUI Launcher)
+  # Reload systemd, enable and start the service immediately
+  systemctl --user daemon-reload
+  systemctl --user enable --now "$APP_NAME.service"
+  echo "-> Systemd user service configured and started successfully."
+
+  # Desktop Entry (For TUI Launcher / Menu)
   DESKTOP_DIR="$HOME/.local/share/applications"
   mkdir -p "$DESKTOP_DIR"
 
   cat >"$DESKTOP_DIR/$APP_NAME.desktop" <<EOF
-[DesktopEntry]
+[Desktop Entry]
 Name=Glipboard TUI
 Comment=Terminal UI for Glipboard
 Exec=$EXECUTABLE_PATH --tui=true
@@ -163,5 +179,5 @@ fi
 
 echo "=========================================================="
 echo " Installation Complete! "
-echo " Glipboard is now configured to start automatically on login."
+echo " Glipboard is now configured to run continuously in the background."
 echo "=========================================================="
