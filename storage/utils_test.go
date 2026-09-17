@@ -299,57 +299,72 @@ func CountTest(t *testing.T) {
 		t.Fatalf("function Count() and test Count() are not the same: %v", err)
 	}
 }
-
-func TestDeleteFromX(t *testing.T) {
+func TestTrimToLimit(t *testing.T) {
 	db := setupTestDb(t)
 	s := &Storage{db: db}
+
 	insertQuery := `INSERT INTO clipboard (hash, type, context, file_path) VALUES (?, ?, ?, ?)`
-	for i := 1; i <= 5; i++ {
+
+	// 1'den 10'a kadar 10 adet test kaydı ekle (rowid'ler: 1, 2, ..., 10)
+	for i := 1; i <= 10; i++ {
 		hash := fmt.Sprintf("test_hash_%d", i)
 		_, err := db.Exec(insertQuery, hash, "text", "test_context", "test_path")
 		if err != nil {
-			t.Fatalf("error during inserting test data: %v", err)
+			t.Fatalf("failed to insert test data: %v", err)
 		}
 	}
 
-	err := s.DeleteFromX(4)
-	if err != nil {
-		t.Fatalf("DeleteFromX() has returned an unexpected error: %v", err)
+	// Senaryo 1: 10 kayıt varken limiti 5'e düşür (en eski 1..5 silinmeli, 6..10 kalmalı)
+	newLimit := 5
+	if err := s.TrimToLimit(newLimit); err != nil {
+		t.Fatalf("TrimToLimit(%d) failed: %v", newLimit, err)
 	}
 
+	// Kalan toplam satır sayısını doğrula
 	var count int
-	err = db.QueryRow(`SELECT COUNT(*) FROM clipboard`).Scan(&count)
-	if err != nil {
-		t.Fatalf("couldn't calculate the remaining row: %v", err)
+	if err := db.QueryRow(`SELECT COUNT(*) FROM clipboard`).Scan(&count); err != nil {
+		t.Fatalf("failed to query count: %v", err)
+	}
+	if count != newLimit {
+		t.Fatalf("expected %d rows after trim, got %d", newLimit, count)
 	}
 
-	if count != 1 {
-		t.Errorf("expected number of records 1, but there %d records exist", count)
-	}
-
+	// Kalan satırların gerçekten en güncel 5 satır (6, 7, 8, 9, 10) olduğunu doğrula
 	rows, err := db.Query(`SELECT rowid FROM clipboard ORDER BY rowid ASC`)
 	if err != nil {
-		t.Fatalf("error during checking rows: %v", err)
+		t.Fatalf("failed to query remaining rowids: %v", err)
 	}
 	defer rows.Close()
 
-	var remainingRowIDs []int
+	var remainingIDs []int
 	for rows.Next() {
 		var id int
 		if err := rows.Scan(&id); err != nil {
-			t.Fatalf("error during scanning row : %v", err)
+			t.Fatalf("failed to scan rowid: %v", err)
 		}
-		remainingRowIDs = append(remainingRowIDs, id)
+		remainingIDs = append(remainingIDs, id)
 	}
 
-	expectedIDs := []int{5}
-	if len(remainingRowIDs) != len(expectedIDs) {
-		t.Fatalf("expected %d remaining rows, got %d", len(expectedIDs), len(remainingRowIDs))
+	expectedIDs := []int{6, 7, 8, 9, 10}
+	if len(remainingIDs) != len(expectedIDs) {
+		t.Fatalf("expected remaining IDs len %d, got %d", len(expectedIDs), len(remainingIDs))
+	}
+	for i, expected := range expectedIDs {
+		if remainingIDs[i] != expected {
+			t.Errorf("at index %d: expected rowid %d, got %d", i, expected, remainingIDs[i])
+		}
 	}
 
-	for i, expectedID := range expectedIDs {
-		if remainingRowIDs[i] != expectedID {
-			t.Errorf("expected rowid %d, but %d found", expectedID, remainingRowIDs[i])
-		}
+	// Senaryo 2: Tabloda 5 kayıt varken daha büyük bir limit (örn. 10) ver
+	// Hiçbir kayıt silinmemeli, mevcut 5 kayıt korunmalı
+	if err := s.TrimToLimit(10); err != nil {
+		t.Fatalf("TrimToLimit(10) failed: %v", err)
+	}
+
+	if err := db.QueryRow(`SELECT COUNT(*) FROM clipboard`).Scan(&count); err != nil {
+		t.Fatalf("failed to query count after second trim: %v", err)
+	}
+	if count != 5 {
+		t.Errorf("expected count to remain 5 when limit > count, got %d", count)
 	}
 }
