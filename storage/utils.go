@@ -107,16 +107,19 @@ func (s *Storage) Count() (int, error) {
 	return count, nil
 }
 
-func (s *Storage) DeleteFromX(x int) error {
-	query := `DELETE FROM clipboard WHERE rowid <= ?`
+func (s *Storage) TrimToLimit(newLimit int) error {
+	query := `
+		DELETE FROM clipboard 
+		WHERE rowid NOT IN (
+			SELECT rowid FROM clipboard 
+			ORDER BY rowid DESC 
+			LIMIT ?
+		)
+	`
+	_, err := s.db.Exec(query, newLimit)
+	if err != nil {
+		return fmt.Errorf("error trimming clipboard to limit %d: %w", newLimit, err)
+	}
 
-	res, err := s.db.Exec(query, x)
-	if err != nil {
-		return fmt.Errorf("error during deleting old records for new limit: %v", err)
-	}
-	_, err = res.RowsAffected()
-	if err != nil {
-		return fmt.Errorf("DeleteFromX() is unsuccessful, nothing changed: %v", err)
-	}
 	return nil
 }
