@@ -1,5 +1,5 @@
 Name:           glipboard
-Version:        2.2.1
+Version:        2.2.2
 Release:        1%{?dist}
 Summary:        A terminal-based clipboard manager
 
@@ -60,4 +60,6 @@ install -Dpm 0644 %{SOURCE3} %{buildroot}%{_datadir}/icons/hicolor/256x256/apps/
 - Users now can set how many items will be stored. Usage: glipboard -o 'limit you want to set'
 * Sun Aug 28 2026 Miraç Bedir - 2.2.1-1 
 - logic issue in DeleteFromX() function fixed
+* Sun Sep 17 2026 Miraç Bedir - 2.2.2-1 
+- added TrimToLimit() function over DeleteFromX(), and now limit changing system does work
 %global debug_package %{nil}
