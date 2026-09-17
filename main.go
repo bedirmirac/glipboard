@@ -26,8 +26,7 @@ func main() {
 	if *limitFlag > 0 {
 		recordCount, err := s.Count()
 		if err == nil && recordCount > *limitFlag {
-			x := recordCount - *limitFlag
-			err := s.DeleteFromX(x)
+			err := s.TrimToLimit(*limitFlag) // X is *limitFlag
 			if err != nil {
 				fmt.Printf("there's been error deleting old records to apply new limit, if they aren't deleted you can delete manually\n")
 			}
@@ -38,8 +37,7 @@ func main() {
 		if err != nil {
 			recordCount, err := s.Count()
 			if err == nil && recordCount > *limitFlag {
-				x := recordCount - *limitFlag
-				err := s.DeleteFromX(x)
+				err := s.TrimToLimit(*limitFlag)
 				if err != nil {
 					fmt.Printf("there's been error deleting old records to apply new limit, if they aren't deleted you can delete manually\n")
 				}
